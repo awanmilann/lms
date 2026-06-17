@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  ESSAY
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  ONGOING
+  COMPLETED
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  exams        Exam[]
+  examAttempts ExamAttempt[]
+  gradedAnswers Answer[]     @relation("GradedBy")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions Question[]
+}
+
+model Question {
+  id            String       @id @default(cuid())
+  type          QuestionType
+  text          String
+  options       String?      // JSON array of options for MC
+  correctAnswer String?
+  points        Int          @default(1)
+  image         String?
+  categoryId    String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  category          Category        @relation(fields: [categoryId], references: [id])
+  examQuestions     ExamQuestion[]
+  answers           Answer[]
+}
+
+model Exam {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  duration    Int        // in minutes
+  startTime   DateTime
+  endTime     DateTime
+  status      ExamStatus @default(DRAFT)
+  token       String?    // optional password
+  createdBy   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  creator          User           @relation(fields: [createdBy], references: [id])
+  examQuestions    ExamQuestion[]
+  examAttempts     ExamAttempt[]
+}
+
+model ExamQuestion {
+  id          String @id @default(cuid())
+  examId      String
+  questionId  String
+  orderIndex  Int
+
+  exam     Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id])
+
+  @@unique([examId, questionId])
+}
+
+model ExamAttempt {
+  id        String         @id @default(cuid())
+  examId    String
+  userId    String
+  startTime DateTime       @default(now())
+  endTime   DateTime?
+  status    AttemptStatus  @default(IN_PROGRESS)
+  totalScore Float?
+  createdAt DateTime       @default(now())
+
+  exam     Exam      @relation(fields: [examId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+  answers  Answer[]
+
+  @@unique([examId, userId])
+}
+
+model Answer {
+  id          String   @id @default(cuid())
+  attemptId   String
+  questionId  String
+  answer      String?
+  isCorrect   Boolean?
+  score       Float?
+  gradedBy    String?
+  gradedAt    DateTime?
+
+  attempt  ExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
+  grader   User?       @relation("GradedBy", fields: [gradedBy], references: [id])
+
+  @@unique([attemptId, questionId])
+}
