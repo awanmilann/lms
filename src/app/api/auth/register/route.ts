@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       email: user.email,
       role: user.role,
     });
-  } catch {
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message || "Something went wrong" }, { status: 500 });
   }
 }
