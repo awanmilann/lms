@@ -25,12 +25,15 @@ export function LoginForm() {
     });
 
     if (result?.error) {
-      setError("Email atau password salah");
+      setError(`Error: ${result.error} (status: ${result?.status || "unknown"})`);
       setLoading(false);
       return;
     }
 
-    window.location.href = "/dashboard";
+    setError(`OK: ${JSON.stringify(result)}`);
+    setTimeout(() => {
+      window.location.href = "/dashboard";
+    }, 2000);
   }
 
   return (
@@ -50,7 +53,11 @@ export function LoginForm() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" placeholder="••••••••" required />
             </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
+                {error}
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </Button>
