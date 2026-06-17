@@ -1,6 +1,5 @@
 "use client";
 
-import { signOut } from "next-auth/react";
 import { Button } from "./ui/button";
 
 export function SignOut() {
@@ -9,7 +8,10 @@ export function SignOut() {
       variant="outline"
       size="sm"
       className="w-full"
-      onClick={() => signOut({ callbackUrl: "/login" })}
+      onClick={async () => {
+        await fetch("/api/auth/logout", { method: "POST" });
+        window.location.href = "/login";
+      }}
     >
       Sign Out
     </Button>

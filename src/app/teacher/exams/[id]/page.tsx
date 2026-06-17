@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExamStatusToggle } from "./status-toggle";
 
+export const dynamic = "force-dynamic";
+
 const statusLabel: Record<string, string> = {
   DRAFT: "Draft",
   PUBLISHED: "Published",

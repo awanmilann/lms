@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { SignOut } from "@/components/sign-out";
 
+export const dynamic = "force-dynamic";
+
 export default async function TeacherLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {

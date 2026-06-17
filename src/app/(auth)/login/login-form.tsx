@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,22 +17,23 @@ export function LoginForm() {
 
     const form = new FormData(e.currentTarget);
 
-    const result = await signIn("credentials", {
-      email: form.get("email") as string,
-      password: form.get("password") as string,
-      redirect: false,
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: form.get("email") as string,
+        password: form.get("password") as string,
+      }),
     });
 
-    if (result?.error) {
-      setError(`Error: ${result.error} (status: ${result?.status || "unknown"})`);
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Login failed");
       setLoading(false);
       return;
     }
 
-    setError(`OK: ${JSON.stringify(result)}`);
-    setTimeout(() => {
-      window.location.href = "/dashboard";
-    }, 2000);
+    window.location.href = "/dashboard";
   }
 
   return (
