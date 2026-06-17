@@ -17,12 +17,28 @@ export function LoginForm() {
     setError("");
 
     const form = new FormData(e.currentTarget);
+    const email = form.get("email") as string;
+    const password = form.get("password") as string;
 
-    signIn("credentials", {
-      email: form.get("email") as string,
-      password: form.get("password") as string,
-      callbackUrl: "/dashboard",
-    });
+    try {
+      const res = await fetch("/api/auth/callback/credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, redirect: false, json: true }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        setError(`Server error (${res.status}): ${text.slice(0, 200)}`);
+        setLoading(false);
+        return;
+      }
+
+      window.location.href = "/dashboard";
+    } catch (err) {
+      setError(`Network error: ${err instanceof Error ? err.message : "Unknown"}`);
+      setLoading(false);
+    }
   }
 
   return (
@@ -42,7 +58,11 @@ export function LoginForm() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" placeholder="••••••••" required />
             </div>
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700 whitespace-pre-wrap">
+                {error}
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign In"}
             </Button>
